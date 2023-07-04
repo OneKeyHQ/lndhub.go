@@ -1,0 +1,10 @@
+version: "3"
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: lndhub
+      POSTGRES_PASSWORD: 4EugRT3LZysKXAooEYsVB
+    ports:
+      - 5432:5432
