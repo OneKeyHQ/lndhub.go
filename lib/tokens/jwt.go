@@ -16,6 +16,7 @@ import (
 
 type jwtCustomClaims struct {
 	ID        int64 `json:"id"`
+	Login    string `json:"login"`
 	IsRefresh bool  `json:"isRefresh"`
 	jwt.StandardClaims
 }
@@ -51,6 +52,7 @@ func Middleware(secret []byte) echo.MiddlewareFunc {
 func GenerateAccessToken(secret []byte, expiryInSeconds int, u *models.User) (string, error) {
 	claims := &jwtCustomClaims{
 		ID:        u.ID,
+		Login: u.Login,
 		IsRefresh: false,
 		StandardClaims: jwt.StandardClaims{
 			// one week expiration
@@ -72,6 +74,7 @@ func GenerateAccessToken(secret []byte, expiryInSeconds int, u *models.User) (st
 func GenerateRefreshToken(secret []byte, expiryInSeconds int, u *models.User) (string, error) {
 	claims := &jwtCustomClaims{
 		ID:        u.ID,
+		Login: u.Login,
 		IsRefresh: true,
 		StandardClaims: jwt.StandardClaims{
 			// one week expiration
