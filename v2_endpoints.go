@@ -20,6 +20,7 @@ func RegisterV2Endpoints(svc *service.LndhubService, e *echo.Echo, secured *echo
 	keysendCtrl := v2controllers.NewKeySendController(svc)
 	healthCtrl := v2controllers.NewHealthController()
 	e.GET("/v2/health", healthCtrl.Check)
+	secured.GET("/v2/auth/check", healthCtrl.Check)
 	secured.POST("/v2/invoices", invoiceCtrl.AddInvoice)
 	secured.GET("/v2/invoices/incoming", invoiceCtrl.GetIncomingInvoices)
 	secured.GET("/v2/invoices/outgoing", invoiceCtrl.GetOutgoingInvoices)
