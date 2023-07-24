@@ -164,6 +164,13 @@ func (controller *InvoiceController) AddInvoice(c echo.Context) error {
 
 	c.Logger().Infof("Adding invoice: user_id:%v memo:%s value:%v description_hash:%s", userID, body.Description, body.Amount, body.DescriptionHash)
 
+	if controller.svc.Config.MaxReceiveAmount > 0 {
+		if body.Amount > controller.svc.Config.MaxReceiveAmount {
+			c.Logger().Errorf("Max receive amount exceeded for user_id:%v (amount:%v)", userID, body.Amount)
+			return c.JSON(http.StatusBadRequest, responses.BadArgumentsError)
+		}
+	}
+
 	invoice, err := controller.svc.AddIncomingInvoice(c.Request().Context(), userID, body.Amount, body.Description, body.DescriptionHash)
 	if err != nil {
 		c.Logger().Errorf("Error creating invoice: user_id:%v error: %v", userID, err)
