@@ -77,6 +77,8 @@ func (svc *LndhubService) GenerateToken(ctx context.Context, login, password, in
 
 func (svc *LndhubService) ParseInt(value interface{}) (int64, error) {
 	switch v := value.(type) {
+	case int64:
+		return v, nil
 	case float64:
 		return int64(v), nil
 	case string:
