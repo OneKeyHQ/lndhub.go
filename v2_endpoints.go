@@ -29,4 +29,7 @@ func RegisterV2Endpoints(svc *service.LndhubService, e *echo.Echo, secured *echo
 	securedWithStrictRateLimit.POST("/v2/payments/keysend", keysendCtrl.KeySend)
 	securedWithStrictRateLimit.POST("/v2/payments/keysend/multi", keysendCtrl.MultiKeySend)
 	secured.GET("/v2/balance", v2controllers.NewBalanceController(svc).Balance)
+	if (svc.Config.AdminToken != "") {
+		e.POST("/v2/invoices/lnurl", invoiceCtrl.AddLnurlInvoice, adminMw)
+	}
 }
