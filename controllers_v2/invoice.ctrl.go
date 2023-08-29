@@ -227,3 +227,59 @@ func (controller *InvoiceController) GetInvoice(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, &responseBody)
 }
+
+type AddLnurlInvoiceRequestBody struct {
+	Amount          int64  `json:"amount" validate:"gte=0"`
+	Description     string `json:"description"`
+	DescriptionHash string `json:"description_hash" validate:"omitempty,hexadecimal,len=64"`
+	UserId          int64  `json:"user_id" validate:"required"`
+}
+
+// AddLnurlInvoice godoc
+// @Summary      Generate a new invoice
+// @Description  Returns a new bolt11 invoice
+// @Accept       json
+// @Produce      json
+// @Tags         Invoice
+// @Param        invoice  body      AddLnurlInvoiceRequestBody  True  "Add Invoice"
+// @Success      200      {object}  AddInvoiceResponseBody
+// @Failure      400      {object}  responses.ErrorResponse
+// @Failure      500      {object}  responses.ErrorResponse
+// @Router       /v2/invoices [post]
+// @Security     OAuth2Password
+func (controller *InvoiceController) AddLnurlInvoice(c echo.Context) error {
+	var body AddLnurlInvoiceRequestBody
+
+	if err := c.Bind(&body); err != nil {
+		c.Logger().Errorf("Failed to load addinvoice request body: %v", err)
+		return c.JSON(http.StatusBadRequest, responses.BadArgumentsError)
+	}
+
+	if err := c.Validate(&body); err != nil {
+		c.Logger().Errorf("Invalid addinvoice request body: %v", err)
+		return c.JSON(http.StatusBadRequest, responses.BadArgumentsError)
+	}
+
+	c.Logger().Infof("Adding invoice: user_id:%v memo:%s value:%v description_hash:%s", body.UserId, body.Description, body.Amount, body.DescriptionHash)
+
+	if controller.svc.Config.MaxReceiveAmount > 0 {
+		if body.Amount > controller.svc.Config.MaxReceiveAmount {
+			c.Logger().Errorf("Max receive amount exceeded for user_id:%v (amount:%v)", body.UserId, body.Amount)
+			return c.JSON(http.StatusBadRequest, responses.BadArgumentsError)
+		}
+	}
+
+	invoice, err := controller.svc.AddIncomingInvoice(c.Request().Context(), body.UserId, body.Amount, body.Description, body.DescriptionHash)
+	if err != nil {
+		c.Logger().Errorf("Error creating invoice: user_id:%v error: %v", body.UserId, err)
+		sentry.CaptureException(err)
+		return c.JSON(http.StatusBadRequest, responses.BadArgumentsError)
+	}
+	responseBody := AddInvoiceResponseBody{
+		PaymentHash:    invoice.RHash,
+		PaymentRequest: invoice.PaymentRequest,
+		ExpiresAt:      invoice.ExpiresAt.Time,
+	}
+
+	return c.JSON(http.StatusOK, &responseBody)
+}
