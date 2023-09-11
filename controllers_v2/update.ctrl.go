@@ -20,14 +20,14 @@ func NewUpdateUserController(svc *service.LndhubService) *UpdateUserController {
 type UpdateUserResponseBody struct {
 	Login       string `json:"login"`
 	Deactivated bool   `json:"deactivated"`
-	Email				string `json:"email"`
+	Email       string `json:"email"`
 	ID          int64  `json:"id"`
 }
 type UpdateUserRequestBody struct {
 	Login       *string `json:"login,omitempty"`
 	Password    *string `json:"password,omitempty"`
 	Deactivated *bool   `json:"deactivated,omitempty"`
-	Email				*string `json:"email,omitempty"`
+	Email       *string `json:"email,omitempty"`
 	ID          int64   `json:"id" validate:"required"`
 }
 
