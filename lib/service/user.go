@@ -73,7 +73,7 @@ func (svc *LndhubService) CreateUser(ctx context.Context, login string, password
 	return user, err
 }
 
-func (svc *LndhubService) UpdateUser(ctx context.Context, userId int64, login *string, password *string, deactivated *bool) (user *models.User, err error) {
+func (svc *LndhubService) UpdateUser(ctx context.Context, userId int64, login *string, password *string, deactivated *bool, email *string) (user *models.User, err error) {
 	user, err = svc.FindUser(ctx, userId)
 	if err != nil {
 		return nil, err
@@ -93,6 +93,14 @@ func (svc *LndhubService) UpdateUser(ctx context.Context, userId int64, login *s
 	}
 	if deactivated != nil {
 		user.Deactivated = *deactivated
+	}
+	// update email field for lightning address
+	if (email != nil) {
+		notNullEmail := sql.NullString{
+			String: *email,
+			Valid: true,
+		}
+		user.Email = notNullEmail
 	}
 	_, err = svc.DB.NewUpdate().Model(user).WherePK().Exec(ctx)
 	if err != nil {
